@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vesttrack-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vesttrack
+      POSTGRES_USER: vesttrack
+      POSTGRES_PASSWORD: vesttrack_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - vesttrack_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vesttrack -d vesttrack"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vesttrack-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: vesttrack
+      DB_USER: vesttrack
+      DB_PASSWORD: vesttrack_dev_password
+      JWT_SECRET: change-this-in-production-please-use-a-real-256bit-secret-key
+      NBP_API_BASE_URL: https://api.nbp.pl/api
+      YAHOO_API_BASE_URL: https://query1.finance.yahoo.com
+      ALPHAVANTAGE_API_BASE_URL: https://www.alphavantage.co
+      ALPHAVANTAGE_API_KEY: demo
+      # --- Konfiguracja poczty (do rejestracji powitalnej i resetu hasla) ---
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: TestAppGOGACZ@gmail.com
+      MAIL_PASSWORD: yumu benv tima okrd
+      MAIL_FROM: TestAppGOGACZ@gmail.com
+      MAIL_SMTP_AUTH: "true"
+      MAIL_SMTP_STARTTLS: "true"
+      # Adres, pod ktorym dziala frontend - uzywany do budowania linku w mailu resetujacym haslo
+      APP_FRONTEND_URL: http://localhost:5173
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vesttrack-frontend
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "5173:80"
+
+volumes:
+  vesttrack_pgdata:

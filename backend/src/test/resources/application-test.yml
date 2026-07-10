@@ -1,0 +1,36 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+jwt:
+  secret: test-only-secret-key-not-for-production-use-1234567890
+  expiration-minutes: 60
+  refresh-expiration-days: 7
+external-api:
+  nbp:
+    base-url: https://api.nbp.pl/api
+  quotes:
+    yahoo-base-url: https://example.invalid
+    alphavantage-base-url: https://example.invalid
+    alphavantage-api-key: demo
+resilience4j:
+  circuitbreaker:
+    instances:
+      yahooQuotes:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+      alphaVantageQuotes:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+  retry:
+    instances:
+      yahooQuotes:
+        max-attempts: 1
+      alphaVantageQuotes:
+        max-attempts: 1
