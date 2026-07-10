@@ -16,7 +16,7 @@ import java.time.Year;
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
 @Tag(name = "Raporty", description = "Eksport transakcji do CSV oraz rocznego podsumowania PDF (pomoc przy PIT-38)")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class ReportController {
 
     private final ReportExportService reportExportService;
@@ -48,3 +48,4 @@ public class ReportController {
                 .body(pdf);
     }
 }
+

@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/v1/transactions")
 @RequiredArgsConstructor
 @Tag(name = "Transakcje", description = "Ksiegowanie operacji BUY/SELL/DIVIDEND, rozliczenie FIFO")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -32,3 +32,4 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.getAccountTransactions(accountId));
     }
 }
+

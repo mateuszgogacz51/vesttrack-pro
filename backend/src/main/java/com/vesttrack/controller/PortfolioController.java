@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/portfolio")
 @RequiredArgsConstructor
 @Tag(name = "Analiza portfela", description = "Strategia Core & Satellite, rebalancing, wielowalutowosc, TWR/MWR")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class PortfolioController {
 
     private final PortfolioAnalysisService portfolioAnalysisService;
@@ -30,3 +30,4 @@ public class PortfolioController {
         return ResponseEntity.ok(performanceCalculationService.calculatePerformance(accountId));
     }
 }
+

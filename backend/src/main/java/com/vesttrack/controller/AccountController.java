@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
 @Tag(name = "Rachunki inwestycyjne", description = "Zarzadzanie sub-kontami uzytkownika (REGULAR / IKE / IKZE)")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class AccountController {
 
     private final AccountService accountService;
@@ -32,3 +32,4 @@ public class AccountController {
         return ResponseEntity.ok(accountService.getMyAccounts());
     }
 }
+
