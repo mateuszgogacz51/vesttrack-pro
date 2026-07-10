@@ -30,7 +30,7 @@ public class AuthService {
     private final EmailService emailService;
 
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public User createUserRecord(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new ApiException("Konto z tym adresem e-mail juz istnieje", HttpStatus.CONFLICT);
         }
@@ -40,11 +40,15 @@ public class AuthService {
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .firstName(request.firstName())
                 .lastName(request.lastName())
-                .role(Role.USER) // rejestracja publiczna zawsze tworzy zwyklego inwestora
+                .role(Role.USER)
                 .enabled(true)
                 .baseCurrency("PLN")
                 .build();
-        userRepository.save(user);
+        return userRepository.save(user);
+    }
+
+    public AuthResponse register(RegisterRequest request) {
+        User user = createUserRecord(request);
 
         auditService.log(user, "USER_REGISTERED", "Nowa rejestracja: " + user.getEmail());
         emailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
