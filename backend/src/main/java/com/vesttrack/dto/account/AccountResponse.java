@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 public record AccountResponse(
         Long id,
         String name,
+        Long brokerageFirmId,
+        String brokerageFirmName,
         String accountType,
         String currency,
         BigDecimal annualContributionLimit,
@@ -15,7 +17,11 @@ public record AccountResponse(
 ) {
     public static AccountResponse from(InvestmentAccount a) {
         return new AccountResponse(
-                a.getId(), a.getName(), a.getAccountType().name(), a.getCurrency(),
+                a.getId(),
+                a.getName(),
+                a.getBrokerageFirm() != null ? a.getBrokerageFirm().getId() : null,
+                a.getBrokerageFirm() != null ? a.getBrokerageFirm().getName() : null,
+                a.getAccountType().name(), a.getCurrency(),
                 a.getAnnualContributionLimit(), a.getContributedThisYear(), a.isActive());
     }
 }

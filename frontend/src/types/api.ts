@@ -16,11 +16,20 @@ export interface AuthResponse {
 export interface AccountResponse {
   id: number;
   name: string;
+  brokerageFirmId: number | null;
+  brokerageFirmName: string | null;
   accountType: AccountType;
   currency: string;
   annualContributionLimit: number | null;
   contributedThisYear: number;
   active: boolean;
+}
+
+export interface BrokerageFirm {
+  id: number;
+  name: string;
+  category: 'BANK' | 'BROKER' | 'TFI';
+  website: string | null;
 }
 
 export interface TransactionResponse {

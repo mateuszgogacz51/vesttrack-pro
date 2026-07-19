@@ -1,0 +1,158 @@
+====================================================
+VESTTRACK PRO - TESTY MANUALNE (do przeklikania)
+====================================================
+
+Zaznaczaj [x] przy kroku, ktory dziala poprawnie.
+Jesli cos nie dziala - zapisz krotko co sie stalo zamiast checkboxa.
+
+----------------------------------------------------
+KONTA TESTOWE (juz w bazie, nic nie trzeba rejestrowac)
+----------------------------------------------------
+Haslo dla wszystkich kont: Test1234!
+
+USER      -> user.demo@vesttrack.pro
+EMPLOYEE  -> pracownik.demo@vesttrack.pro
+ADMIN     -> admin.demo@vesttrack.pro
+
+Konta te tworza sie SAME przy pierwszym starcie backendu
+(DemoDataSeeder). Nie trzeba nic wpisywac do bazy recznie -
+wystarczy odpalic aplikacje i juz sa gotowe do zalogowania.
+Konto user.demo ma tez od razu 2 przykladowe rachunki (XTB, IKE mBank).
+
+
+====================================================
+1. LOGOWANIE
+====================================================
+[ ] Wchodze na strone logowania
+[ ] Loguje sie jako user.demo@vesttrack.pro / Test1234!
+[ ] Widze Pulpit z 2 gotowymi kontami (XTB, IKE mBank)
+[ ] Wylogowuje sie
+[ ] Loguje sie na zle haslo -> widze czytelny komunikat o bledzie
+[ ] Loguje sie jako pracownik.demo@vesttrack.pro -> dziala
+[ ] Loguje sie jako admin.demo@vesttrack.pro -> dziala
+
+
+====================================================
+2. NOWE KONTO - WYBOR INSTYTUCJI Z LISTY (nowa funkcja)
+====================================================
+[ ] Klikam "+ Nowe konto"
+[ ] Klikam pole "Instytucja" -> lista rozwija sie SAMA, bez wpisywania
+[ ] Wpisuje w wyszukiwarce np. "santander"
+[ ] Lista zawezyla sie do pozycji z "Santander"
+[ ] Wybieram instytucje z listy (klik)
+[ ] Zostawiam pole "wlasna nazwa konta" puste
+[ ] Wybieram typ konta (Standardowe/IKE/IKZE) i walute
+[ ] Klikam "Utworz konto"
+[ ] Nowe konto pojawia sie na Pulpicie z nazwa instytucji jako nazwa konta
+
+
+====================================================
+3. NOWE KONTO - WLASNY PSEUDONIM + INSTYTUCJA
+====================================================
+[ ] Klikam "+ Nowe konto", wybieram inna instytucje z listy (np. XTB)
+[ ] Wpisuje wlasna nazwe konta, np. "XTB - spekulacyjne"
+[ ] Klikam "Utworz konto"
+[ ] Na karcie konta widze moj pseudonim jako tytul
+[ ] Pod spodem widze nazwe instytucji (XTB) i waluty
+
+
+====================================================
+4. NOWE KONTO - INSTYTUCJA SPOZA LISTY (recznie)
+====================================================
+[ ] Klikam "+ Nowe konto" -> pole "Instytucja"
+[ ] Klikam "Nie widze swojej instytucji - wpisze nazwe recznie"
+[ ] Wpisuje dowolna nazwe, np. "Bank Spoldzielczy Testowy"
+[ ] Klikam "Utworz konto"
+[ ] Konto tworzy sie z wpisana recznie nazwa (stara sciezka nadal dziala)
+
+
+====================================================
+5. WALIDACJA - PUSTY FORMULARZ
+====================================================
+[ ] Klikam "+ Nowe konto", NIC nie wybieram (ani z listy, ani recznie)
+[ ] Klikam "Utworz konto"
+[ ] Widze komunikat o koniecznosci wyboru instytucji / wpisania nazwy
+[ ] Konto NIE zostalo utworzone "puste"
+
+
+====================================================
+6. LIMIT WPLAT IKE / IKZE
+====================================================
+[ ] Tworze konto typu IKE, ustawiam roczny limit wplat np. 1000
+[ ] Wchodze w szczegoly konta
+[ ] Pasek wykorzystania limitu na Pulpicie pokazuje poprawny procent
+[ ] Probuje przekroczyc limit -> system blokuje z czytelnym komunikatem
+
+
+====================================================
+7. TRANSAKCJE / WYSZUKIWANIE INSTRUMENTOW
+====================================================
+[ ] Wchodze w szczegoly konta, klikam "+ Nowa transakcja"
+[ ] Wyszukuje instrument po tickerze np. "AAPL"
+[ ] Wyniki pojawiaja sie (rowniez spoza lokalnej bazy - dociagane z Yahoo Finance)
+[ ] Dodaje transakcje kupna
+[ ] Transakcja pojawia sie na liscie transakcji konta
+
+
+====================================================
+8. ZGLOSZENIA (TICKETY) - USER + EMPLOYEE
+====================================================
+[ ] Jako user.demo tworze nowe zgloszenie
+[ ] Wylogowuje sie, loguje jako pracownik.demo
+[ ] Znajduje zgloszenie na liscie
+[ ] Zmieniam status zgloszenia
+[ ] Dodaje notatke wewnetrzna
+[ ] Wylogowuje, loguje jako user.demo -> notatka wewnetrzna NIE jest widoczna
+
+
+====================================================
+9. PANEL ADMINA - ZESPOL I AUDYT
+====================================================
+[ ] Loguje sie jako admin.demo
+[ ] Wchodze w statystyki pracownikow -> widze dane pracownik.demo
+[ ] Wchodze w dziennik audytu (audit log)
+[ ] Widze wpisy z wczesniejszych krokow (logowania, utworzone konta, zgloszenia)
+
+
+====================================================
+10. RATE-LIMITING DASHBOARD (limity zewnetrznych API)
+====================================================
+[ ] Jako admin.demo wchodze w "Limity zewnetrznych API"
+[ ] Widze 3 dostawcow: YAHOO_FINANCE, ALPHA_VANTAGE, NBP
+[ ] Jako user.demo wyszukuje kilka nowych instrumentow (krok 7)
+[ ] Wracam jako admin, odswiezam -> licznik YAHOO_FINANCE wzrosl
+[ ] Obnizam dzienny limit YAHOO_FINANCE do bardzo niskiej wartosci (np. 1)
+[ ] Jako user.demo probuje wyszukac kolejny nowy instrument
+[ ] Wyszukiwanie zewnetrzne jest zablokowane, ale appka NIE wywala bledu 500
+[ ] Wylaczam dostawce YAHOO_FINANCE (active = false)
+[ ] Przywracam oryginalny limit i active=true na koniec testu (WAZNE!)
+
+
+====================================================
+11. RESET HASLA
+====================================================
+[ ] Na stronie logowania klikam "Nie pamietasz hasla?"
+[ ] Podaje e-mail user.demo@vesttrack.pro
+[ ] Widze ten sam komunikat sukcesu co przy nieistniejacym mailu (test obu)
+[ ] Odbieram e-mail (Mailtrap / log serwera) z linkiem resetujacym
+[ ] Klikam link, ustawiam nowe haslo
+[ ] Stare haslo juz NIE dziala, nowe - dziala
+[ ] Uzywam TEGO SAMEGO linku drugi raz -> system go odrzuca (juz wykorzystany)
+[ ] (opcjonalnie) czekam na wygasniecie linku (30 min) -> link odrzucony jako przeterminowany
+
+
+====================================================
+12. API INSTYTUCJI - SPRAWDZENIE PRZEZ SWAGGER (opcjonalne, techniczne)
+====================================================
+[ ] Otwieram /swagger-ui.html
+[ ] Loguje sie, kopiuje token z /api/v1/auth/login
+[ ] Wywoluje GET /api/v1/institutions/search (bez query) -> ~20 instytucji
+[ ] Wywoluje GET /api/v1/institutions/search?query=xyz123 -> pusta lista [], nie blad 500
+
+
+====================================================
+NOTATKI / ZNALEZIONE BLEDY (wpisz ponizej)
+====================================================
+-
+-
+-

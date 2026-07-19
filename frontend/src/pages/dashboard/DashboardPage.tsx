@@ -9,10 +9,11 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Alert } from '@/components/ui/Alert';
+import { InstitutionPicker } from '@/components/InstitutionPicker';
 import { accountsApi } from '@/api/accounts';
 import { extractErrorMessage } from '@/api/client';
 import { formatMoney } from '@/utils/format';
-import type { AccountResponse, AccountType } from '@/types/api';
+import type { AccountResponse, AccountType, BrokerageFirm } from '@/types/api';
 
 const accountTypeLabel: Record<AccountType, string> = {
   REGULAR: 'Standardowe',
@@ -38,7 +39,7 @@ export function DashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-display text-3xl text-ink">Pulpit</h1>
-          <p className="text-slate mt-1">Przegląd Twoich rachunków inwestycyjnych</p>
+          <p className="text-slate mt-1">Wszystkie Twoje rachunki inwestycyjne w jednym miejscu 👋</p>
         </div>
         <Button onClick={() => setModalOpen(true)}>+ Nowe konto</Button>
       </div>
@@ -71,7 +72,11 @@ export function DashboardPage() {
                   {!account.active && <Badge tone="danger">Nieaktywne</Badge>}
                 </div>
                 <h3 className="font-display text-lg text-ink mb-1">{account.name}</h3>
-                <p className="text-sm text-slate mb-4">Waluta bazowa: {account.currency}</p>
+                <p className="text-sm text-slate mb-1">
+                  {account.brokerageFirmName && account.brokerageFirmName !== account.name
+                    ? `${account.brokerageFirmName} · ${account.currency}`
+                    : `Waluta bazowa: ${account.currency}`}
+                </p>
 
                 {account.accountType !== 'REGULAR' && account.annualContributionLimit && (
                   <div>
@@ -107,28 +112,49 @@ export function DashboardPage() {
 }
 
 function CreateAccountModal({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: () => void }) {
-  const [name, setName] = useState('');
+  const [firm, setFirm] = useState<BrokerageFirm | null>(null);
+  const [useCustomName, setUseCustomName] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [nickname, setNickname] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('REGULAR');
   const [currency, setCurrency] = useState('PLN');
   const [limit, setLimit] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  function resetForm() {
+    setFirm(null);
+    setUseCustomName(false);
+    setCustomName('');
+    setNickname('');
+    setLimit('');
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!firm && !useCustomName) {
+      setError('Wybierz instytucję z listy albo wpisz nazwę ręcznie.');
+      return;
+    }
+    if (useCustomName && !customName.trim()) {
+      setError('Podaj nazwę instytucji lub konta.');
+      return;
+    }
+
     setLoading(true);
     try {
       await accountsApi.create({
-        name,
+        name: useCustomName ? customName.trim() : nickname.trim() || null,
+        brokerageFirmId: useCustomName ? null : firm?.id,
         accountType,
         currency,
         annualContributionLimit: limit ? Number(limit) : null
       });
       onCreated();
       onClose();
-      setName('');
-      setLimit('');
+      resetForm();
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
@@ -140,7 +166,40 @@ function CreateAccountModal({ open, onClose, onCreated }: { open: boolean; onClo
     <Modal open={open} onClose={onClose} title="Nowe konto inwestycyjne">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {error && <Alert tone="danger">{error}</Alert>}
-        <Input label="Nazwa konta" required value={name} onChange={(e) => setName(e.target.value)} placeholder="np. Konto maklerskie XTB" />
+
+        <p className="text-sm text-slate -mt-1">
+          Wybierz bank, biuro maklerskie lub TFI, w którym masz swój rachunek — nie musisz wpisywać nazwy ręcznie.
+        </p>
+
+        {!useCustomName && (
+          <InstitutionPicker selected={firm} onSelect={setFirm} onUseCustom={() => setUseCustomName(true)} />
+        )}
+
+        {useCustomName && (
+          <Input
+            label="Nazwa instytucji / konta"
+            required
+            value={customName}
+            onChange={(e) => setCustomName(e.target.value)}
+            placeholder="np. Konto maklerskie XTB"
+            hint={
+              <button type="button" className="text-brand hover:underline" onClick={() => setUseCustomName(false)}>
+                Wróć do listy instytucji
+              </button>
+            }
+          />
+        )}
+
+        {!useCustomName && firm && (
+          <Input
+            label="Własna nazwa konta (opcjonalnie)"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder={`np. „${firm.name} — emerytura”`}
+            hint="Jeśli zostawisz puste, użyjemy nazwy instytucji."
+          />
+        )}
+
         <Select label="Typ konta" value={accountType} onChange={(e) => setAccountType(e.target.value as AccountType)}>
           <option value="REGULAR">Standardowe</option>
           <option value="IKE">IKE</option>

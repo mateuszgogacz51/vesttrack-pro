@@ -33,6 +33,12 @@ public class InvestmentAccount {
     @Column(nullable = false)
     private String name;
 
+    // Opcjonalne powiazanie z instytucja ze slownika (patrz BrokerageFirm) - dzieki temu
+    // uzytkownik wybiera instytucje z listy zamiast wpisywac jej nazwe recznie za kazdym razem.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brokerage_firm_id")
+    private BrokerageFirm brokerageFirm;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type", nullable = false)
     private AccountType accountType;
