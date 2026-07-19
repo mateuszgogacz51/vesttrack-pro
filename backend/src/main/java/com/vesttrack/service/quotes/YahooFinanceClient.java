@@ -56,6 +56,41 @@ public class YahooFinanceClient {
         }
     }
 
+    /**
+     * Wyszukuje instrumenty finansowe po nazwie/tickerze przez publiczny endpoint
+     * wyszukiwarki Yahoo Finance. Uzywane, gdy uzytkownik szuka instrumentu,
+     * ktorego nie ma jeszcze w lokalnym slowniku - pozwala automatycznie
+     * dodawac nowe spolki/ETF-y bez recznej interwencji administratora.
+     * W przypadku bledu zwraca pusta liste zamiast wywalac cala operacje wyszukiwania.
+     */
+    @CircuitBreaker(name = "yahooQuotes")
+    @Retry(name = "yahooQuotes")
+    public List<SymbolMatch> searchSymbols(String query) {
+        try {
+            SearchResponse response = yahooWebClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/v1/finance/search")
+                            .queryParam("q", query)
+                            .queryParam("quotesCount", 10)
+                            .queryParam("newsCount", 0)
+                            .build())
+                    .retrieve()
+                    .bodyToMono(SearchResponse.class)
+                    .timeout(Duration.ofSeconds(4))
+                    .block();
+
+            usageTrackingService.recordCall(PROVIDER_NAME, true);
+            if (response == null || response.quotes() == null) {
+                return List.of();
+            }
+            return response.quotes();
+        } catch (Exception ex) {
+            usageTrackingService.recordCall(PROVIDER_NAME, false);
+            log.warn("Yahoo Finance: blad wyszukiwania symboli dla '{}': {}", query, ex.getMessage());
+            return List.of();
+        }
+    }
+
     private BigDecimal extractPrice(ChartResponse response) {
         if (response == null || response.chart() == null || response.chart().result() == null
                 || response.chart().result().isEmpty()) {
@@ -73,4 +108,10 @@ public class YahooFinanceClient {
     private record Chart(List<Result> result) {}
     private record Result(Meta meta) {}
     private record Meta(String currency, String symbol, Double regularMarketPrice) {}
+
+    // Struktura JSON zwracana przez Yahoo Finance /v1/finance/search
+    private record SearchResponse(List<SymbolMatch> quotes) {}
+
+    public record SymbolMatch(String symbol, String shortname, String longname,
+                              String exchange, String quoteType, String currency) {}
 }
